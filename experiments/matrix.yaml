@@ -1,0 +1,18 @@
+gc:
+  - G1GC
+  - SerialGC
+  - ZGC
+
+heap:
+  - 256m
+  - 512m
+  - 1g
+
+load_level:
+  - 10
+  - 30
+  - 50
+
+sla_ms:
+  - 300
+  - 500
