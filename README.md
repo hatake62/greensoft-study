@@ -178,7 +178,7 @@ Kubernetes DeploymentではCPUとメモリの `requests` / `limits` を設定し
 | Go | `100m` | `64Mi` | `200m` | `128Mi` |
 | Node.js | `100m` | `64Mi` | `200m` | `128Mi` |
 | Python | `100m` | `64Mi` | `200m` | `128Mi` |
-| Java | `100m` | `256Mi` | `200m` | `256Mi` |
+| Java | `100m` | `384Mi` | `200m` | `384Mi` |
 
 JavaはSpring Bootの起動に必要なメモリを考慮し、他の言語より大きいメモリ設定になっています。
 
@@ -238,10 +238,15 @@ python experiments/run_experiment.py --dry-run
 
 ```bash
 kubectl apply -f kepler-test-java/deployment-java.yaml
-kubectl port-forward deployment/java-idle-app 8080:8080
 ```
 
-別ターミナルで実験を実行します。
+Prometheusをローカルから参照できるようにします。PrometheusのService名やnamespaceは環境に合わせて変更してください。
+
+```bash
+kubectl port-forward -n monitoring service/prometheus-server 9090:80
+```
+
+別ターミナルで実験を実行します。`--port-forward` を付けると、各条件でJava Deploymentを再起動したあとにスクリプトが `kubectl port-forward` を張り直します。
 
 ```bash
 python experiments/run_experiment.py \
@@ -249,12 +254,15 @@ python experiments/run_experiment.py \
   --deployment java-idle-app \
   --container java-container \
   --target-url http://localhost:8080/ \
-  --prometheus-url http://localhost:9090
+  --prometheus-url http://localhost:9090 \
+  --port-forward
 ```
 
-スクリプトは `JAVA_TOOL_OPTIONS` にGC方式と `-Xms/-Xmx` を設定し、Deploymentを再起動してからk6を実行します。ヒープサイズに合わせてKubernetesのメモリ request/limit も更新します。
+既に別ターミナルで `kubectl port-forward deployment/java-idle-app 8080:8080` を実行している場合は、`--port-forward` を省略できます。ただし、Deploymentの再起動で接続が切れる場合は張り直しが必要です。
 
-PrometheusのKepler向けPromQLは `prometheus/queries.py` の定数で変更できます。
+スクリプトは `JAVA_TOOL_OPTIONS` にGC方式と `-Xms/-Xmx` を設定し、Deploymentを再起動してからk6を実行します。ヒープサイズに合わせてKubernetesのメモリ request/limit も更新します。k6の各HTTPリクエストのタイムアウトは `--http-timeout` で変更でき、デフォルトは `5s` です。
+
+実行前に `--target-url` と `--prometheus-url` へ接続できるかを確認します。PrometheusのKepler向けPromQLは `prometheus/queries.py` の定数で変更できます。
 
 ### CSVの項目
 

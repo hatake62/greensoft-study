@@ -3,13 +3,14 @@
 from __future__ import annotations
 
 import json
+import urllib.error
 import urllib.parse
 import urllib.request
 from typing import Any
 
 
 POWER_WATT_PROMQL = (
-    'avg(rate(kepler_container_joules_total{{namespace="{namespace}",pod_name="{pod_name}"}}[5m]))'
+    'avg(kepler_pod_cpu_watts{{pod_namespace="{namespace}",pod_name="{pod_name}",zone="package"}})'
 )
 CPU_USAGE_PROMQL = (
     'avg(rate(container_cpu_usage_seconds_total{{namespace="{namespace}",pod="{pod_name}"}}[5m]))'
@@ -59,8 +60,15 @@ def _query_range_average(
     )
     url = f"{prometheus_url.rstrip('/')}/api/v1/query_range?{params}"
 
-    with urllib.request.urlopen(url, timeout=30) as response:
-        payload = json.loads(response.read().decode("utf-8"))
+    try:
+        with urllib.request.urlopen(url, timeout=30) as response:
+            payload = json.loads(response.read().decode("utf-8"))
+    except urllib.error.URLError as exc:
+        raise RuntimeError(
+            f"cannot connect to Prometheus at {prometheus_url!r}: {exc.reason}"
+        ) from exc
+    except TimeoutError as exc:
+        raise RuntimeError(f"timed out querying Prometheus at {prometheus_url!r}") from exc
 
     values = _extract_values(payload)
     if not values:
