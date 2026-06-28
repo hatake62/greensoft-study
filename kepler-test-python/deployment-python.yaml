@@ -1,0 +1,29 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: python-idle-app
+  labels:
+    app: python-idle
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: python-idle
+  template:
+    metadata:
+      labels:
+        app: python-idle
+    spec:
+      containers:
+      - name: python-container
+        image: python-idle-image:latest
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 8080
+        resources:
+          limits:
+            cpu: "200m"
+            memory: "128Mi"
+          requests:
+            cpu: "100m"
+            memory: "64Mi"

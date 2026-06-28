@@ -1,0 +1,29 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: node-idle-app
+  labels:
+    app: node-idle
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: node-idle
+  template:
+    metadata:
+      labels:
+        app: node-idle
+    spec:
+      containers:
+      - name: node-container
+        image: node-idle-image:latest
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 8080
+        resources:
+          limits:
+            cpu: "200m"
+            memory: "128Mi"
+          requests:
+            cpu: "100m"
+            memory: "64Mi"

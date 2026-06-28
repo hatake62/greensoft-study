@@ -1,0 +1,7 @@
+[package]
+name = "idle-server"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+# 外部ライブラリは使用せず、極限まで軽くします

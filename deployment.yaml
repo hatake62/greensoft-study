@@ -1,0 +1,31 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: rust-idle-app
+  labels:
+    app: rust-idle
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: rust-idle
+  template:
+    metadata:
+      labels:
+        app: rust-idle
+    spec:
+      containers:
+      - name: rust-container
+        # ここはビルドしたイメージ名に合わせます
+        image: rust-idle-image:latest
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 8080
+        # 【重要】リソース制限：他の言語と比較する際も全く同じ値にします
+        resources:
+          limits:
+            cpu: "200m"      # CPUの20%を上限とする
+            memory: "128Mi"  # メモリは128MBまで
+          requests:
+            cpu: "100m"
+            memory: "64Mi"
